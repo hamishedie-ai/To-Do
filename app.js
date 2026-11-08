@@ -114,16 +114,6 @@
     $("pw").value = ""; say("authmsg", "");
   };
 
-  $("signup").onclick = async function () {
-    var c = creds();
-    if (!c.email || c.password.length < 8) { say("authmsg", "Enter your email and a password of at least 8 characters."); return; }
-    say("authmsg", "Creating account…");
-    var r = await sb.auth.signUp(c);
-    if (r.error) { say("authmsg", "Couldn't create the account."); return; }
-    $("pw").value = "";
-    say("authmsg", "Account created. Check your email to confirm it, then sign in.");
-  };
-
   $("signout").onclick = async function () { await sb.auth.signOut(); };
 
   sb.auth.onAuthStateChange(function (event, session) {
