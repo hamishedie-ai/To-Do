@@ -6,6 +6,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="To-do">
 <meta name="theme-color" content="#14233A">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; connect-src https://vsbpaiqdvxqyfydlkuso.supabase.co; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; manifest-src 'self'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="manifest" href="manifest.webmanifest">
 <title>To-do list</title>
@@ -76,79 +78,47 @@
     height:54px; padding:0 24px; border:0; border-radius:5px; background:var(--ink); color:var(--paper);
     font:700 19px "Atkinson Hyperlegible", system-ui, sans-serif; cursor:pointer;
   }
+  [hidden] { display:none !important; }
+  #auth { max-width:520px; margin:0 auto; padding:0 20px; }
+  #auth form { display:flex; flex-direction:column; gap:12px; }
+  #auth .row { display:flex; gap:10px; }
+  #auth .row button { flex:1; }
+  button.alt { height:54px; padding:0 24px; border:3px solid var(--ink); border-radius:5px; background:transparent; color:var(--ink); font:700 19px "Atkinson Hyperlegible", system-ui, sans-serif; cursor:pointer; }
+  button.alt:focus-visible { outline:3px solid var(--ink); outline-offset:3px; }
+  .msg { font-size:17px; color:var(--steel); min-height:1.3em; margin:14px 0 0; }
+  .foot { display:flex; justify-content:flex-end; margin-top:28px; }
   @media (prefers-reduced-motion: reduce) { .t, .box, .box::after { transition:none; } }
 </style>
 </head>
 <body>
+<section id="auth" hidden>
+  <h1>To-do</h1>
+  <p class="count">Sign in to see your list.</p>
+  <form id="login">
+    <input id="email" type="email" placeholder="Email" autocomplete="username" aria-label="Email" required>
+    <input id="pw" type="password" placeholder="Password" autocomplete="current-password" aria-label="Password" minlength="8" required>
+    <div class="row">
+      <button class="add" type="submit" id="signin">Sign in</button>
+      <button class="alt" type="button" id="signup">Create account</button>
+    </div>
+  </form>
+  <p class="msg" id="authmsg" role="status"></p>
+</section>
+<div id="appwrap" hidden>
 <main>
   <h1>To-do</h1>
   <p class="count" id="count"></p>
+  <p class="msg" id="msg" role="status"></p>
   <ul id="todo"></ul>
   <div class="doneHead" id="doneHead" hidden><span>Done</span><button class="clear" id="clear" type="button">Clear done</button></div>
   <ul id="done"></ul>
+  <div class="foot"><button class="clear" id="signout" type="button">Sign out</button></div>
 </main>
 <div class="bar">
-  <form id="add"><input id="new" placeholder="Add a job" autocomplete="off" enterkeyhint="done" aria-label="New job"><button class="add" type="submit">Add</button></form>
+  <form id="add"><input id="new" placeholder="Add a job" autocomplete="off" enterkeyhint="done" aria-label="New job" maxlength="200"><button class="add" type="submit">Add</button></form>
 </div>
-<script>
-  var KEY = "todo-v5";
-  var items = [
-    { t: "Aerial", d: false },
-    { t: "Car aircon", d: false },
-    { t: "Toilet brush", d: false },
-    { t: "Strip cable", d: false },
-    { t: "Power pass", d: false },
-    { t: "Genes", d: false }
-  ];
-  try { var s = localStorage.getItem(KEY); if (s) items = JSON.parse(s); } catch (e) {}
-  
-  var calm = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-  function save() {
-    try { localStorage.setItem(KEY, JSON.stringify(items)); } catch (e) {}
-  }
-  function toggle(it, li) {
-    if (li.dataset.busy) return;
-    function flip(want) { it.d = want; save(); render(); }
-    if (!it.d && !calm) {
-      li.dataset.busy = "1";
-      li.classList.add("sweep");
-      li.setAttribute("aria-checked", "true");
-      setTimeout(function () { flip(true); }, 560);
-    } else {
-      flip(!it.d);
-    }
-  }
-  function row(it, ul) {
-    var li = document.createElement("li");
-    li.className = it.d ? "done" : "";
-    li.tabIndex = 0;
-    li.setAttribute("role", "checkbox");
-    li.setAttribute("aria-checked", it.d ? "true" : "false");
-    li.innerHTML = '<span class="box"></span><span class="t"></span>';
-    li.querySelector(".t").textContent = it.t;
-    li.onclick = function () { toggle(it, li); };
-    li.onkeydown = function (e) { if (e.key === " " || e.key === "Enter") { e.preventDefault(); toggle(it, li); } };
-    ul.appendChild(li);
-  }
-  function render() {
-    var a = document.getElementById("todo"), b = document.getElementById("done");
-    a.innerHTML = ""; b.innerHTML = "";
-    var left = 0, done = 0;
-    items.forEach(function (it) { if (it.d) { row(it, b); done++; } else { row(it, a); left++; } });
-    document.getElementById("count").textContent = left > 0 ? left + " to go" : "Nothing left. Add the next job below.";
-    document.getElementById("doneHead").hidden = done === 0;
-  }
-  document.getElementById("add").onsubmit = function (e) {
-    e.preventDefault();
-    var inp = document.getElementById("new"), v = inp.value.trim();
-    if (v) { items.push({ t: v, d: false }); inp.value = ""; save(); render(); }
-  };
-  document.getElementById("clear").onclick = function () {
-    items = items.filter(function (x) { return !x.d; }); save(); render();
-  };
-  render();
-
-</script>
+</div>
+<script src="vendor/supabase.js"></script>
+<script src="app.js"></script>
 </body>
 </html>
